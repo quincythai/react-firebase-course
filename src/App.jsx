@@ -1,13 +1,13 @@
-import "./App.css";
 import { useEffect, useState } from "react";
+import "./App.css";
 import { Auth } from "./components/auth";
 import { db, auth, storage } from "./config/firebase";
 import {
   getDocs,
+  collection,
   addDoc,
   deleteDoc,
   updateDoc,
-  collection,
   doc,
 } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
@@ -20,17 +20,13 @@ function App() {
   const [newReleaseDate, setNewReleaseDate] = useState(0);
   const [isNewMovieOscar, setIsNewMovieOscar] = useState(false);
 
-  // Update title state
+  // Update Title State
   const [updatedTitle, setUpdatedTitle] = useState("");
 
-  // File upload State
+  // File Upload State
   const [fileUpload, setFileUpload] = useState(null);
 
   const moviesCollectionRef = collection(db, "movies");
-
-  useEffect(() => {
-    getMovieList();
-  }, []);
 
   const getMovieList = async () => {
     try {
@@ -40,6 +36,24 @@ function App() {
         id: doc.id,
       }));
       setMovieList(filteredData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    getMovieList();
+  }, []);
+
+  const onSubmitMovie = async () => {
+    try {
+      await addDoc(moviesCollectionRef, {
+        title: newMovieTitle,
+        releaseDate: newReleaseDate,
+        receivedAnOscar: isNewMovieOscar,
+        userId: auth?.currentUser?.uid,
+      });
+      getMovieList();
     } catch (err) {
       console.error(err);
     }
@@ -65,21 +79,6 @@ function App() {
     }
   };
 
-  const onSubmitMovie = async () => {
-    try {
-      await addDoc(moviesCollectionRef, {
-        title: newMovieTitle,
-        releaseDate: newReleaseDate,
-        receivedAnOscar: isNewMovieOscar,
-        userId: auth?.currentUser?.uid,
-      });
-
-      getMovieList();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
     <div className="App">
       <Auth />
@@ -90,7 +89,7 @@ function App() {
           onChange={(e) => setNewMovieTitle(e.target.value)}
         />
         <input
-          placeholder="Release date..."
+          placeholder="Release Date..."
           type="number"
           onChange={(e) => setNewReleaseDate(Number(e.target.value))}
         />
@@ -99,26 +98,25 @@ function App() {
           checked={isNewMovieOscar}
           onChange={(e) => setIsNewMovieOscar(e.target.checked)}
         />
-        <label>Received an Oscar</label>
-        <button onClick={onSubmitMovie}>Submit Movie</button>
+        <label> Received an Oscar</label>
+        <button onClick={onSubmitMovie}> Submit Movie</button>
       </div>
-
       <div>
         {movieList.map((movie) => (
           <div key={movie.id}>
             <h1 style={{ color: movie.receivedAnOscar ? "green" : "red" }}>
               {movie.title}
             </h1>
-            <p>{movie.date}</p>
+            <p> Date: {movie.releaseDate} </p>
 
-            <button onClick={() => deleteMovie(movie.id)}>Delete movie</button>
+            <button onClick={() => deleteMovie(movie.id)}> Delete Movie</button>
 
             <input
-              placeholder="New title..."
-              type="text"
+              placeholder="new title..."
               onChange={(e) => setUpdatedTitle(e.target.value)}
             />
             <button onClick={() => updateMovieTitle(movie.id)}>
+              {" "}
               Update Title
             </button>
           </div>
@@ -127,7 +125,7 @@ function App() {
 
       <div>
         <input type="file" onChange={(e) => setFileUpload(e.target.files[0])} />
-        <button onClick={uploadFile}>Upload File</button>
+        <button onClick={uploadFile}> Upload File </button>
       </div>
     </div>
   );
