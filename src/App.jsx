@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import "./App.css";
 import { Auth } from "./components/auth";
 import { db, auth, storage } from "./config/firebase";
@@ -26,7 +26,7 @@ function App() {
   // File Upload State
   const [fileUpload, setFileUpload] = useState(null);
 
-  const moviesCollectionRef = collection(db, "movies");
+  const moviesCollectionRef = useMemo(() => collection(db, "movies"), [db]);
 
   const getMovieList = async () => {
     try {
